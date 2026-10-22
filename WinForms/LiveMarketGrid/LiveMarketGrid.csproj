@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationVisualStyles>true</ApplicationVisualStyles>
+    <RootNamespace>ReoGridSamples.LiveMarketGrid</RootNamespace>
+    <AssemblyName>LiveMarketGrid</AssemblyName>
+  </PropertyGroup>
+
+  <!-- ReoGrid One from the UNVELL package feed (see the repository README for the one-time feed setup). -->
+  <ItemGroup Condition="'$(ReoGridSource)' == ''">
+    <PackageReference Include="unvell.ReoGrid.One" Version="$(ReoGridVersion)" />
+  </ItemGroup>
+
+  <!-- For ReoGrid maintainers: build against a local checkout of the library instead of the package.
+       dotnet build -p:ReoGridSource=C:\path\to\reogrid-v5 -->
+  <ItemGroup Condition="'$(ReoGridSource)' != ''">
+    <ProjectReference Include="$(ReoGridSource)\ReoGrid.One\ReoGrid.One.csproj" />
+  </ItemGroup>
+
+</Project>

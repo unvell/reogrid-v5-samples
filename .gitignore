@@ -1,0 +1,21 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+artifacts/
+
+# IDE / user state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.rsuser
+
+# Benchmark output written next to the executable or by --out
+bench-results*.md
+bench-frame*.png
+
+# Never commit a license key
+license.txt
+*.license

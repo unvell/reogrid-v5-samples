@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Avalonia/">
+    <Project Path="Avalonia/LiveMarketGrid/LiveMarketGrid.csproj" />
+  </Folder>
+  <Folder Name="/WinForms/">
+    <Project Path="WinForms/LiveMarketGrid/LiveMarketGrid.csproj" />
+  </Folder>
+</Solution>
