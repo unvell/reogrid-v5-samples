@@ -96,6 +96,32 @@ With Direct2D, *Paint* includes presenting the frame to the window. With GDI+ it
 copying the back buffer to the window, about 3.5 ms more at this size (the report's *Tick* column
 includes it).
 
+## Demo
+
+```bash
+dotnet run -c Release --project WinForms/LiveMarketGrid -- --demo
+```
+
+A scripted, full-screen run of about 80 seconds, made to be recorded as a video. It plays three
+rounds, each first on GDI+ and then on Direct2D, ticking once for every frame the display shows:
+
+| Round | What changes on every frame |
+|---|---|
+| Every visible cell, every frame | all 15 fields of every visible instrument |
+| Scrolling while it updates | the same, while the grid scrolls 30 rows a second |
+| A clock column and 8 prices | the *Updated* column of every visible row, and 8 last prices |
+
+A band above the grid shows the renderer that is drawing, the paint time, the frames per second
+and a graph of the paint time over the last 30 seconds. The first repaint after a switch sets the
+new renderer up; it is left out of the band. The grid is zoomed so that its 20 columns fill the
+screen, and moved prices do not flash: a flash on every frame would strobe. The run ends with the
+median paint time and frame rate it measured in each round, and the machine it ran on. Esc ends it
+early.
+
+`--sync` is for a recording script: the demo prints `ready` with the title card on screen and
+waits for a line on standard input; at the end it prints `done` and waits for another line before
+it closes the window.
+
 ## Why Direct2D, and how to switch
 
 **GDI+ draws the text of every visible cell on every repaint.** That is why its paint time is the
@@ -174,4 +200,8 @@ separates paint time from everything else on the UI thread.
 | `FramePacer.cs` | ticks once per frame the display shows |
 | `MainForm.cs` | the window, toolbar, sheet tabs and status bar |
 | `Benchmark.cs` | the `--bench` measurement and report |
+| `Demo.cs` | the `--demo` run: rounds, measurement, cards |
+| `DemoHud.cs` | the band above the grid in the demo: renderer, paint time, frame rate, graph, caption |
+| `DemoCard.cs` | the demo's full-window title, code and results cards |
+| `SystemInfo.cs` | CPU, GPU, display and versions for the report and the results card |
 | `LicenseLoader.cs` | applies a license key from the environment or the license file, if present |

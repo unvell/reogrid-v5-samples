@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Win32;
 using unvell.ReoGrid.WinForms;
 
 namespace ReoGridSamples.LiveMarketGrid;
@@ -143,17 +141,14 @@ internal static class Benchmark
 	{
 		var sb = new StringBuilder();
 		var ws = form.Sheets[0].Sheet;
-		var asm = typeof(ReoGridControl).Assembly;
-		string version = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
-			?? asm.GetName().Version?.ToString() ?? "?";
 		var screen = Screen.FromControl(form);
 
 		sb.AppendLine("# LiveMarketGrid (WinForms) benchmark");
 		sb.AppendLine();
 		sb.AppendLine($"- Date: {DateTime.Now:yyyy-MM-dd HH:mm}");
-		sb.AppendLine($"- Machine: {Cpu()} ({Environment.ProcessorCount} logical), {RuntimeInformation.OSDescription}");
-		sb.AppendLine($"- Runtime: .NET {Environment.Version}, {(System.Runtime.GCSettings.IsServerGC ? "Server" : "Workstation")} GC, {(Debugger.IsAttached ? "debugger attached" : "no debugger")}, {Configuration()}");
-		sb.AppendLine($"- ReoGrid: {asm.GetName().Name} {version} — {form.LicenseState}");
+		sb.AppendLine($"- Machine: {SystemInfo.Cpu()} ({Environment.ProcessorCount} logical), {RuntimeInformation.OSDescription}");
+		sb.AppendLine($"- Runtime: .NET {Environment.Version}, {(System.Runtime.GCSettings.IsServerGC ? "Server" : "Workstation")} GC, {(Debugger.IsAttached ? "debugger attached" : "no debugger")}, {SystemInfo.Configuration()}");
+		sb.AppendLine($"- ReoGrid: {typeof(ReoGridControl).Assembly.GetName().Name} {SystemInfo.ReoGridVersion()} — {form.LicenseState}");
 		sb.AppendLine($"- Display: {screen.Bounds.Width}×{screen.Bounds.Height} px at {form.Grid.DpiScale * 100:F0}% scale; grid {form.Grid.ClientSize.Width}×{form.Grid.ClientSize.Height} px");
 		sb.AppendLine($"- Model: {form.Sheets.Count} sheets × {o.Rows:N0} rows × {MarketSheet.ColumnCount} columns, built in {form.BuildMs:N0} ms");
 		sb.AppendLine($"- Per sheet: {ws.Merges.Count:N0} merged ranges, {ws.CellTypes.Count:N0} cell-type ranges, {ws.DistinctStyleCount:N0} distinct styles");
@@ -202,13 +197,6 @@ internal static class Benchmark
 		Array.Sort(s);
 		return s.Length == 0 ? double.NaN : s[s.Length / 2];
 	}
-
-	private static string Cpu() =>
-		Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "ProcessorNameString", null) is string s
-			? s.Trim() : "unknown CPU";
-
-	private static string Configuration() =>
-		typeof(Benchmark).Assembly.GetCustomAttribute<DebuggableAttribute>()?.IsJITOptimizerDisabled == true ? "Debug build" : "Release build";
 
 	[DllImport("kernel32.dll")]
 	private static extern bool AttachConsole(int processId);

@@ -30,7 +30,9 @@ internal sealed class MainForm : Form
 	private readonly PaintStats _updates = new(capacity: 240);
 	private readonly ToolStripButton _start, _pause, _flash;
 	private readonly ToolStripComboBox _renderer, _pace, _pattern, _background;
+	private readonly ToolStrip _toolbar = new() { GripStyle = ToolStripGripStyle.Hidden };
 	private readonly ToolStrip _sheetTabs = new() { Dock = DockStyle.Bottom, GripStyle = ToolStripGripStyle.Hidden };
+	private readonly StatusStrip _status = new();
 	private readonly ToolStripStatusLabel _paintLabel = new(), _updateLabel = new(), _infoLabel = new() { Spring = true, TextAlign = ContentAlignment.MiddleRight };
 	private bool _running, _everyFrame;
 	private TickResult _lastTick;
@@ -73,8 +75,7 @@ internal sealed class MainForm : Form
 		_background = Combo(Backgrounds.Select(v => v.ToString("N0")), Array.IndexOf(Backgrounds, Feed.BackgroundPerSheet), 80,
 			i => Feed.BackgroundPerSheet = Backgrounds[i]);
 
-		var toolbar = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden };
-		toolbar.Items.AddRange(new ToolStripItem[]
+		_toolbar.Items.AddRange(new ToolStripItem[]
 		{
 			_start, _pause, new ToolStripSeparator(),
 			new ToolStripLabel("Renderer"), _renderer, new ToolStripSeparator(),
@@ -91,13 +92,12 @@ internal sealed class MainForm : Form
 			_sheetTabs.Items.Add(tab);
 		}
 
-		var status = new StatusStrip();
-		status.Items.AddRange(new ToolStripItem[] { _paintLabel, new ToolStripSeparator(), _updateLabel, _infoLabel });
+		_status.Items.AddRange(new ToolStripItem[] { _paintLabel, new ToolStripSeparator(), _updateLabel, _infoLabel });
 
 		Controls.Add(Grid);
 		Controls.Add(_sheetTabs);
-		Controls.Add(status);
-		Controls.Add(toolbar);
+		Controls.Add(_status);
+		Controls.Add(_toolbar);
 
 		SetRenderer(options.Renderer);
 		_timer.Tick += (_, _) => TickOnce();
@@ -146,9 +146,19 @@ internal sealed class MainForm : Form
 		SyncSheetTabs();
 	}
 
+	/// <summary>The toolbar, sheet tabs and status bar; <c>--demo</c> hides them.</summary>
+	public void ShowChrome(bool visible)
+	{
+		_toolbar.Visible = _sheetTabs.Visible = _status.Visible = visible;
+	}
+
+	/// <summary>Raised at the start of every tick, before the feed reads the visible rows.</summary>
+	public event Action? Ticking;
+
 	/// <summary>One feed tick: write to the model, then ask for ONE repaint.</summary>
 	public TickResult TickOnce()
 	{
+		Ticking?.Invoke();
 		var (first, last) = Grid.VisibleRows();
 		_lastTick = Feed.Tick(Active, first, last);
 		_updates.Add(_lastTick.UpdateMs);
