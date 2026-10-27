@@ -154,13 +154,13 @@ internal sealed class DemoCard : Control
 
 	private sealed class Fonts(float s) : IDisposable
 	{
-		public readonly Font Kicker = new("Segoe UI Semibold", 20 * s, GraphicsUnit.Pixel);
+		public readonly Font Kicker = new("Segoe UI Semibold", 23 * s, GraphicsUnit.Pixel);
 		public readonly Font Title = new("Segoe UI Semibold", 64 * s, GraphicsUnit.Pixel);
-		public readonly Font Body = new("Segoe UI", 26 * s, GraphicsUnit.Pixel);
+		public readonly Font Body = new("Segoe UI", 29 * s, GraphicsUnit.Pixel);
 		public readonly Font Code = new("Consolas", 30 * s, GraphicsUnit.Pixel);
-		public readonly Font TableHeader = new("Segoe UI Semibold", 18 * s, GraphicsUnit.Pixel);
+		public readonly Font TableHeader = new("Segoe UI Semibold", 20 * s, GraphicsUnit.Pixel);
 		public readonly Font TableValue = new("Segoe UI Semibold", 32 * s, GraphicsUnit.Pixel);
-		public readonly Font Footer = new("Segoe UI", 17 * s, GraphicsUnit.Pixel);
+		public readonly Font Footer = new("Segoe UI", 19 * s, GraphicsUnit.Pixel);
 
 		public void Dispose()
 		{

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using unvell.ReoGrid.WinForms;
 
 namespace ReoGridSamples.LiveMarketGrid;
@@ -8,13 +9,15 @@ namespace ReoGridSamples.LiveMarketGrid;
 /// visible cell changing on every frame, scrolling while they change, a clock column with a few
 /// prices — each played on GDI+ and then on Direct2D, ticking once for every frame the display
 /// shows. The band above the grid (<see cref="DemoHud"/>) shows the renderer, the paint time and
-/// the frame rate; the run ends with the numbers it measured. Esc ends it early.
+/// the frame rate, and a frame (<see cref="DemoFrame"/>) sets the running grid apart from it; the run
+/// ends with the numbers it measured. Esc ends it early.
 /// </summary>
 /// <remarks>
 /// <c>--sync</c> is for a recording script: the demo prints <c>ready</c> when the title card is on
-/// screen and waits for a line on standard input before it goes on; at the end it prints
-/// <c>done</c> and waits for another line before it closes the window, so the recorder can stop
-/// while the window is still there.
+/// screen and waits for a line on standard input before it goes on; it prints <c>rounds</c> when the
+/// grid comes on screen and <c>cards</c> when it goes; at the end it prints <c>done</c> and waits for
+/// another line before it closes the window, so the recorder can stop while the window is still
+/// there.
 /// </remarks>
 internal sealed class Demo
 {
@@ -45,6 +48,7 @@ internal sealed class Demo
 	private readonly Options _options;
 	private readonly Screen _screen;
 	private readonly DemoHud _hud;
+	private readonly DemoFrame _frame;
 	private readonly CancellationTokenSource _closing = new();
 	private DemoCard? _card;
 	private bool _scrolling;
@@ -74,6 +78,15 @@ internal sealed class Demo
 		form.FormClosing += (_, _) => _closing.Cancel();
 		form.Ticking += ScrollOnTick;
 
+		// While the display is off, Direct2D's frames do not reach a window recorder (GDI+ frames still
+		// do), so a recording would show the grid frozen. Keep the display on while the demo runs.
+		SetThreadExecutionState(EsContinuous | EsDisplayRequired);
+		form.FormClosed += (_, _) => SetThreadExecutionState(EsContinuous);
+
+		// The frame takes the grid's place; it docks last, into the space the band leaves.
+		_frame = new DemoFrame(form.Grid);
+		form.Controls.Add(_frame);
+		form.Controls.SetChildIndex(_frame, 0);
 		_hud = new DemoHud(form.Grid, SystemInfo.RefreshRate(_screen));
 		form.Controls.Add(_hud);
 		form.Shown += async (_, _) => await PlayAsync();
@@ -85,7 +98,7 @@ internal sealed class Demo
 		try
 		{
 			ZoomToWidth();
-			_hud.SetInfo($"ReoGrid One {SystemInfo.ReoGridVersion()} · WinForms · {_form.Sheets.Count} sheets × {_options.Rows:N0} instruments"
+			_frame.SetInfo($"ReoGrid One {SystemInfo.ReoGridVersion()} · WinForms · {_form.Sheets.Count} sheets × {_options.Rows:N0} instruments"
 				+ $" × {MarketSheet.ColumnCount} fields · {_screen.Bounds.Width} × {_screen.Bounds.Height}, zoom {_form.Grid.Zoom:P0}");
 			_form.SetPace(0);
 			_form.SetRunning(true);
@@ -114,6 +127,7 @@ internal sealed class Demo
 			ShowGrid();
 			_hud.Reset();
 			_form.SetRunning(true);
+			if (_options.Sync) Console.WriteLine("rounds");
 			var results = new List<(Round Round, Measured Gdi, Measured Direct2D)>();
 			foreach (var round in Rounds)
 			{
@@ -124,6 +138,7 @@ internal sealed class Demo
 			_form.SetRunning(false);
 			_scrolling = false;
 
+			if (_options.Sync) Console.WriteLine("cards");
 			await Card(CodeCard(), 7, token);
 			await Card(ResultsCard(results), 10, token);
 			if (_options.Sync)
@@ -185,6 +200,11 @@ internal sealed class Demo
 
 	private static Task Wait(double seconds, CancellationToken token) => Task.Delay(TimeSpan.FromSeconds(seconds), token);
 
+	private const uint EsContinuous = 0x80000000, EsDisplayRequired = 0x00000002;
+
+	[DllImport("kernel32.dll")]
+	private static extern uint SetThreadExecutionState(uint flags);
+
 	private async Task Card(DemoCardContent content, double seconds, CancellationToken token)
 	{
 		ShowCard(content, seconds).Start();
@@ -195,7 +215,7 @@ internal sealed class Demo
 	{
 		_card?.Dispose();
 		_card = new DemoCard(content, seconds);
-		_form.Grid.Visible = _hud.Visible = false;
+		_frame.Visible = _hud.Visible = false;
 		_form.Controls.Add(_card);
 		return _card;
 	}
@@ -204,7 +224,7 @@ internal sealed class Demo
 	{
 		_card?.Dispose();
 		_card = null;
-		_hud.Visible = _form.Grid.Visible = true;
+		_hud.Visible = _frame.Visible = true;
 		_form.Grid.Focus();
 	}
 

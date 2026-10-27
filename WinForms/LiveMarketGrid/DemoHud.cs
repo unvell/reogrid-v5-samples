@@ -7,7 +7,8 @@ namespace ReoGridSamples.LiveMarketGrid;
 /// <summary>
 /// The band above the grid in <c>--demo</c>, sized to read in a video: the renderer that is
 /// drawing, what one repaint costs, how many repaints reach the window per second, the paint time
-/// of the last 30 seconds as a graph, and a caption saying what the grid is doing.
+/// of the last 30 seconds as a graph, and a caption saying what the grid is doing. What is on
+/// screen is on the frame around the grid (<see cref="DemoFrame"/>).
 /// </summary>
 /// <remarks>
 /// The first repaint after the renderer changes sets the new renderer up (device, caches). It is a
@@ -31,7 +32,6 @@ internal sealed class DemoHud : Control
 
 	private readonly TimedReoGridControl _grid;
 	private readonly int _refreshHz;
-	private string _info = "";
 	private readonly System.Windows.Forms.Timer _timer = new() { Interval = SampleMs };
 	private readonly List<(double Ms, GridRenderer Renderer)> _samples = new(Samples);
 	private readonly Queue<(long At, double Ms)> _recent = new();
@@ -61,13 +61,6 @@ internal sealed class DemoHud : Control
 	{
 		_title = title;
 		_caption = caption;
-		Invalidate();
-	}
-
-	/// <summary>Right-aligned on the caption row: what is on screen.</summary>
-	public void SetInfo(string info)
-	{
-		_info = info;
 		Invalidate();
 	}
 
@@ -150,16 +143,14 @@ internal sealed class DemoHud : Control
 		DrawGraph(g, new Rectangle(x, S(46), Width - x - S(32), metrics - S(46) - S(20)), s);
 		DrawText(g, "PAINT TIME PER FRAME · LAST 30 SECONDS", _labelFont, Muted, x, labelY);
 
-		// Caption row: round title, what is happening, and on the right what is on screen.
+		// Caption row: round title, then what is happening.
 		int rowH = Height - metrics;
 		int titleY = metrics + (rowH - _titleFont.Height) / 2;
 		int captionX = S(32);
 		if (_title != "")
-			captionX += TextWidth(g, _title, _titleFont) + S(20);
+			captionX += TextWidth(g, _title, _titleFont) + S(22);
 		DrawText(g, _title, _titleFont, Color.White, S(32), titleY);
 		DrawText(g, _caption, _captionFont, Soft, captionX, titleY + Ascent(_titleFont) - Ascent(_captionFont));
-		int infoW = TextWidth(g, _info, _smallFont);
-		DrawText(g, _info, _smallFont, Muted, Width - S(32) - infoW, titleY + Ascent(_titleFont) - Ascent(_smallFont));
 	}
 
 	/// <param name="area">The graph with its labels; the labels of the frame lines take a gutter on the left.</param>
@@ -236,12 +227,12 @@ internal sealed class DemoHud : Control
 		if (_fontDpi == DeviceDpi) return;
 		DisposeFonts();
 		_fontDpi = DeviceDpi;
-		_labelFont = new Font("Segoe UI Semibold", 13 * s, GraphicsUnit.Pixel);
+		_labelFont = new Font("Segoe UI Semibold", 15 * s, GraphicsUnit.Pixel);
 		_valueFont = new Font("Segoe UI Semibold", 54 * s, GraphicsUnit.Pixel);
 		_unitFont = new Font("Segoe UI", 22 * s, GraphicsUnit.Pixel);
-		_smallFont = new Font("Segoe UI", 14 * s, GraphicsUnit.Pixel);
-		_titleFont = new Font("Segoe UI Semibold", 23 * s, GraphicsUnit.Pixel);
-		_captionFont = new Font("Segoe UI", 23 * s, GraphicsUnit.Pixel);
+		_smallFont = new Font("Segoe UI", 16 * s, GraphicsUnit.Pixel);
+		_titleFont = new Font("Segoe UI Semibold", 26 * s, GraphicsUnit.Pixel);
+		_captionFont = new Font("Segoe UI", 26 * s, GraphicsUnit.Pixel);
 	}
 
 	private void DisposeFonts()

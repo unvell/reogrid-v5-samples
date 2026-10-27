@@ -113,14 +113,17 @@ rounds, each first on GDI+ and then on Direct2D, ticking once for every frame th
 
 A band above the grid shows the renderer that is drawing, the paint time, the frames per second
 and a graph of the paint time over the last 30 seconds. The first repaint after a switch sets the
-new renderer up; it is left out of the band. The grid is zoomed so that its 20 columns fill the
-screen, and moved prices do not flash: a flash on every frame would strobe. The run ends with the
-median paint time and frame rate it measured in each round, and the machine it ran on. Esc ends it
-early.
+new renderer up; it is left out of the band. The grid itself sits in a frame in the renderer's
+colour, which sets the running sample apart from the band that explains it. The grid is zoomed so
+that its 20 columns fill the screen, and moved prices do not flash: a flash on every frame would
+strobe. The run ends with the median paint time and frame rate it measured in each round, and the
+machine it ran on. Esc ends it early. While it runs, the display stays on.
 
 `--sync` is for a recording script: the demo prints `ready` with the title card on screen and
-waits for a line on standard input; at the end it prints `done` and waits for another line before
-it closes the window.
+waits for a line on standard input. It prints `rounds` when the grid comes on screen and `cards`
+when it goes. At the end it prints `done` and waits for another line before it closes the window.
+Record with the display on: while it is off, Direct2D's frames do not reach a window recorder, and
+the grid would look frozen.
 
 ## Why Direct2D, and how to switch
 
@@ -202,6 +205,7 @@ separates paint time from everything else on the UI thread.
 | `Benchmark.cs` | the `--bench` measurement and report |
 | `Demo.cs` | the `--demo` run: rounds, measurement, cards |
 | `DemoHud.cs` | the band above the grid in the demo: renderer, paint time, frame rate, graph, caption |
+| `DemoFrame.cs` | the frame around the grid in the demo, in the colour of the renderer that is drawing |
 | `DemoCard.cs` | the demo's full-window title, code and results cards |
 | `SystemInfo.cs` | CPU, GPU, display and versions for the report and the results card |
 | `LicenseLoader.cs` | applies a license key from the environment or the license file, if present |
