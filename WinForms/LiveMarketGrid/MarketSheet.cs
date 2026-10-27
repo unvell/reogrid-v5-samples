@@ -90,7 +90,7 @@ internal sealed class MarketSheet
 		("Watch", 46), ("Symbol", 84), ("Name", 170), ("Venue", 74),
 		("Bid", 84), ("Ask", 84), ("Bid size", 72), ("Ask size", 72), ("Spread", 64),
 		("Last", 88), ("Chg", 74), ("Chg %", 66), ("Volume", 96),
-		("Open", 84), ("High", 84), ("Low", 84), ("VWAP", 84), ("Updated", 72),
+		("Open", 84), ("High", 84), ("Low", 84), ("VWAP", 84), ("Updated", 92),
 		("P&L", 96), ("Fill", 90),
 	];
 
